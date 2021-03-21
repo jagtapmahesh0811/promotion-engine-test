@@ -8,6 +8,9 @@ namespace BusinessRuleEngine
     {
         static void Main(string[] args)
         {
+            // Note - Currently the rule engine is implemented and rest things/actions are logged in console.
+            // If require we can implement relevant functionality in the respective ToDo's
+
             IPaymentService paymentForPhysicalProduct = new PaymentService();
             Console.WriteLine("For Physical Product");
             paymentForPhysicalProduct.DoPayment(new Product(1, "Physical Product Name"));
