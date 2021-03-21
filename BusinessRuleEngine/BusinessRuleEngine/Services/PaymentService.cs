@@ -1,51 +1,29 @@
-﻿using BusinessRuleEngine.Models;
+﻿using BusinessRuleEngine.RuleEngine;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BusinessRuleEngine.Services
 {
     public class PaymentService: IPaymentService
     {
         /// <summary>
-        /// Generate packing Slip 
+        /// Call the engine to switch to sepcific rule
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="item"></param>
         public void DoPayment<T>(T item)
         {
-            if (item.GetType().Name == typeof(Product).Name)
-            {
-                Console.WriteLine("Generate a packing slip for shipping");
-                Console.WriteLine("Generate a commission payment to the agent.");
-            }
+            // Ref - https://garywoodfine.com/get-c-classes-implementing-interface/
 
-            if (item.GetType().Name == typeof(Book).Name)
-            {
-                Console.WriteLine("Create a duplicate packing slips for the royalty department.");
-                Console.WriteLine("Generate a commission payment to the agent.");
-            }
-            if (item.GetType().Name == typeof(Membership).Name)
-            {
-                var membership = item as Membership;
+            var ruleType = typeof(IPaymentRule);
+            IEnumerable<IPaymentRule> rules = this.GetType().Assembly.GetTypes()
+                .Where(x => ruleType.IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
+                .Select(r => Activator.CreateInstance(r) as IPaymentRule);
 
-                if (membership.MembershipType == MembershipType.New)
-                {
-                    Console.WriteLine("activate that membership.");
-                }
-                if (membership.MembershipType == MembershipType.Upgrade)
-                {
-                    Console.WriteLine("Membership upgraded.");
-                }
+            var paymentRuleEngine = new PaymentRuleEngine(rules);
 
-                Console.WriteLine("e-mail the owner and inform them of the activation / upgrade.");
-            }
-            if (item.GetType().Name == typeof(Video).Name)
-            {
-                var video = item as Video;
-                if (video.Name == "Learning to Ski")
-                {
-                    Console.WriteLine("add free \"First Aid\" video to the packing slip (the result of a court decision in 1997)");
-                }
-            }
+            paymentRuleEngine.DoPayment(item);
         }
     }
 }
